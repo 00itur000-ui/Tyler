@@ -1,0 +1,360 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+// --- Icon Components (Inline SVGs for reliability) ---
+const Brain = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4 4.5 4.5 0 0 1 3 4 4.5 4.5 0 0 1 3-4Z"/></svg>
+);
+const Zap = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+);
+const HomeIcon = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+);
+const Wrench = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+);
+const Send = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+);
+const UserIcon = ({ className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+);
+
+// --- Sub-components ---
+
+const ChatMessage = ({ role, content, propertyCard }) => {
+  const isAI = role === 'ai';
+  return (
+    <div className={`flex w-full ${isAI ? 'justify-start' : 'justify-end'} mb-4 animate-fade-in-up`}>
+      <div className={`flex max-w-[85%] ${isAI ? 'flex-row' : 'flex-row-reverse'}`}>
+        <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1 ${isAI ? 'bg-gradient-to-br from-blue-500 to-purple-600' : 'bg-slate-700'} border border-white/10`}>
+          {isAI ? <Brain className="w-4 h-4 text-white" /> : <UserIcon className="w-4 h-4 text-white" />}
+        </div>
+        <div className={`mx-3 p-4 rounded-2xl ${isAI ? 'bg-slate-800/80 text-slate-200 rounded-tl-sm border border-white/5' : 'bg-blue-600 text-white rounded-tr-sm shadow-lg shadow-blue-900/20'}`}>
+          <p className="text-sm leading-relaxed whitespace-pre-line">{content}</p>
+          
+          {propertyCard && (
+            <div className="mt-4 bg-slate-900 rounded-xl overflow-hidden border border-slate-700">
+              <div className="h-32 bg-slate-700 relative">
+                {/* Abstract house placeholder */}
+                <svg className="w-full h-full text-slate-600 opacity-20 absolute inset-0" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-xs font-semibold text-white">
+                  98% Match
+                </div>
+              </div>
+              <div className="p-3">
+                <div className="flex justify-between items-start mb-1">
+                  <h4 className="font-bold text-white text-lg">$685,000</h4>
+                  <span className="text-xs px-2 py-1 bg-red-500/20 text-red-400 rounded-full font-medium">High Flood Risk</span>
+                </div>
+                <p className="text-xs text-slate-400 mb-2">4 Beds • 3 Baths • 2,400 sqft • Modern Black Finish</p>
+                <div className="pt-2 border-t border-slate-700/50 flex justify-between items-center">
+                  <span className="text-xs text-emerald-400 font-medium">Monthly Est: $4,850</span>
+                  <button className="text-xs bg-white text-slate-900 px-3 py-1.5 rounded-full font-medium hover:bg-slate-200 transition-colors">
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function App() {
+  const [chatHistory, setChatHistory] = useState([
+    { role: 'ai', content: "👋 Hi Tyler.\n\nI'm T&A, your AI companion. What would you like to accomplish today?" }
+  ]);
+  const [isTyping, setIsTyping] = useState(false);
+  const chatEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory, isTyping]);
+
+  const handleDemoClick = (type) => {
+    if (isTyping) return;
+    
+    let userMessage = "";
+    let aiResponse = "";
+    let hasCard = false;
+
+    if (type === 'buy') {
+      userMessage = "Find me a modern black house in Florida under $700,000 with a pool, close to the beach, and in a safe neighborhood.";
+      aiResponse = "I've scanned the Florida coast and found 3 excellent matches under $700k.\n\nHere is the top recommendation. It perfectly matches your style. **However, I want to advise you:** This specific neighborhood has higher insurance premiums due to historical flood data. I've recalculated your estimated monthly cost to include the $400/mo insurance average so there are no surprises.";
+      hasCard = true;
+    } else if (type === 'maintain') {
+      userMessage = "My AC is blowing warm air. What do I do?";
+      aiResponse = "Let's troubleshoot safely before calling someone.\n\n1. Check your thermostat batteries.\n2. Ensure the outdoor unit is clear of debris.\n3. Check if your air filter is clogged (it's been 4 months since I last reminded you to change it).\n\nIf those are fine, it might be a capacitor issue (est. $150-$300 repair). Would you like me to book a highly-rated, licensed HVAC tech in your area for tomorrow morning?";
+    }
+
+    setChatHistory(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsTyping(true);
+
+    setTimeout(() => {
+      setIsTyping(false);
+      setChatHistory(prev => [...prev, { role: 'ai', content: aiResponse, propertyCard: hasCard }]);
+    }, 2000);
+  };
+
+  const resetChat = () => {
+    setChatHistory([{ role: 'ai', content: "👋 Hi Tyler.\n\nI'm T&A, your AI companion. What would you like to accomplish today?" }]);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-blue-500/30">
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fadeInUp 0.4s ease-out forwards;
+        }
+        .glass-panel {
+          background: rgba(30, 41, 59, 0.4);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+      `}} />
+
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full z-50 glass-panel border-b border-white/5 border-l-0 border-r-0 border-t-0">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <Brain className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold tracking-tight">T&A <span className="font-light text-slate-400">AI</span></span>
+          </div>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+            <a href="#homes" className="hover:text-white transition-colors">Homes</a>
+            <a href="#ecosystem" className="hover:text-white transition-colors">Ecosystem</a>
+            <a href="#vision" className="hover:text-white transition-colors">Vision</a>
+          </div>
+          <button className="bg-white text-slate-950 px-5 py-2.5 rounded-full text-sm font-semibold hover:scale-105 transition-transform">
+            Get Early Access
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <main className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        {/* Background glow effects */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-[500px] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+          
+          {/* Left: Copy */}
+          <div className="space-y-8 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide uppercase">
+              <Zap className="w-3.5 h-3.5" />
+              The Future of Real Estate
+            </div>
+            <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1]">
+              Stop Searching.<br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 animate-pulse">Start Deciding.</span>
+            </h1>
+            <p className="text-lg lg:text-xl text-slate-400 leading-relaxed">
+              T&A is the world's first AI real estate advisor. Instead of scrolling through hundreds of listings, simply describe what you want. We curate the matches, calculate the true costs, and negotiate on your behalf.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all shadow-lg shadow-blue-900/20 hover:shadow-blue-900/40 transform hover:-translate-y-1">
+                Try T&A Homes
+              </button>
+              <button className="glass-panel text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/10 transition-colors">
+                Watch the Vision
+              </button>
+            </div>
+          </div>
+
+          {/* Right: Interactive Chat Demo */}
+          <div className="relative">
+            {/* Decorative frame */}
+            <div className="absolute -inset-0.5 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-[2.5rem] blur-xl opacity-50"></div>
+            
+            <div className="glass-panel rounded-[2rem] h-[600px] flex flex-col overflow-hidden relative z-10 shadow-2xl shadow-black/50 border border-slate-700/50">
+              {/* Chat Header */}
+              <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-slate-900/50">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <Brain className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"></div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm">T&A Assistant</h3>
+                    <p className="text-xs text-slate-400">Always online</p>
+                  </div>
+                </div>
+                <button onClick={resetChat} className="text-xs text-slate-400 hover:text-white transition-colors">
+                  Reset Demo
+                </button>
+              </div>
+
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
+                {chatHistory.map((msg, idx) => (
+                  <ChatMessage key={idx} role={msg.role} content={msg.content} propertyCard={msg.propertyCard} />
+                ))}
+                
+                {isTyping && (
+                  <div className="flex w-full justify-start mb-4 animate-fade-in-up">
+                    <div className="flex items-center gap-3 bg-slate-800/80 px-4 py-3 rounded-2xl rounded-tl-sm border border-white/5">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                      <span className="text-xs text-slate-400 font-medium">T&A is analyzing data...</span>
+                    </div>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Chat Input Area (Mocked for demo) */}
+              <div className="p-4 bg-slate-900/80 border-t border-white/5 backdrop-blur-md">
+                {chatHistory.length === 1 && !isTyping ? (
+                  <div className="flex flex-col gap-2 animate-fade-in-up">
+                    <p className="text-xs text-slate-400 font-medium px-2">Try a scenario:</p>
+                    <button onClick={() => handleDemoClick('buy')} className="text-left w-full p-3 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-blue-500/50 transition-all text-sm text-slate-300">
+                      "Find a modern black house under $700k..."
+                    </button>
+                    <button onClick={() => handleDemoClick('maintain')} className="text-left w-full p-3 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-purple-500/50 transition-all text-sm text-slate-300">
+                      "My AC is blowing warm air..."
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative opacity-50 pointer-events-none">
+                    <input type="text" disabled placeholder="Type your request naturally..." className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-4 pr-12 py-4 text-sm text-white focus:outline-none focus:border-blue-500" />
+                    <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-blue-600 rounded-lg text-white">
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Differentiator Section */}
+      <section id="homes" className="py-24 bg-slate-900 border-y border-white/5">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl lg:text-5xl font-bold mb-6">Existing sites show you listings. <br/><span className="text-blue-400">We give you advice.</span></h2>
+            <p className="text-slate-400 text-lg">
+              T&A doesn't just search MLS databases. It acts as a fiduciary AI, evaluating every property against your personal financial goals and lifestyle preferences.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="glass-panel p-8 rounded-3xl">
+              <div className="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-2xl flex items-center justify-center mb-6">
+                <HomeIcon className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Smarter Curation</h3>
+              <p className="text-slate-400 leading-relaxed text-sm">
+                No more checking 20 filter boxes. Just tell T&A you want a "lake house with room for 6 cars in a great school district." It understands context and nuance.
+              </p>
+            </div>
+            <div className="glass-panel p-8 rounded-3xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl"></div>
+              <div className="w-12 h-12 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center mb-6 relative z-10">
+                <Brain className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold mb-3 relative z-10">Risk & Value Assessment</h3>
+              <p className="text-slate-400 leading-relaxed text-sm relative z-10">
+                T&A flags high insurance zones, calculates true monthly costs based on local taxes, and alerts you if a home has been sitting on the market too long.
+              </p>
+            </div>
+            <div className="glass-panel p-8 rounded-3xl">
+              <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center mb-6">
+                <Wrench className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Lifelong Home Health</h3>
+              <p className="text-slate-400 leading-relaxed text-sm">
+                Our relationship doesn't end at closing. T&A tracks your appliance ages, reminds you of maintenance, and books local contractors when things break.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The Broader Ecosystem Vision */}
+      <section id="ecosystem" className="py-24 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="flex flex-col lg:flex-row gap-16 items-center">
+            <div className="lg:w-1/2">
+              <h2 className="text-3xl lg:text-4xl font-bold mb-6">One AI Platform.<br/>Every Home Need.</h2>
+              <p className="text-slate-400 mb-8 leading-relaxed">
+                T&A isn't a collection of separate apps. It's a single, unified intelligence. The same AI that helps you buy your house helps you furnish it, repair it, and eventually sell it.
+              </p>
+              
+              <ul className="space-y-4">
+                {['Buy & Rent', 'Vacation Mode', 'Seller Strategy', 'Home Maintenance', 'Investment Advisory'].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+                      <svg className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <span className="font-medium text-slate-200">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="lg:w-1/2 w-full">
+              {/* Abstract Platform Visual */}
+              <div className="aspect-square w-full max-w-md mx-auto relative">
+                <div className="absolute inset-0 border-2 border-dashed border-slate-700 rounded-full animate-[spin_60s_linear_infinite]"></div>
+                <div className="absolute inset-8 border border-slate-600 rounded-full flex items-center justify-center">
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full shadow-[0_0_50px_rgba(59,130,246,0.5)] flex items-center justify-center z-20">
+                    <Brain className="w-10 h-10 text-white" />
+                  </div>
+                </div>
+                
+                {/* Orbiting Nodes */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 glass-panel px-4 py-2 rounded-full text-sm font-bold shadow-lg shadow-black/50 z-10 flex items-center gap-2">
+                  <HomeIcon className="w-4 h-4 text-blue-400" /> Homes
+                </div>
+                <div className="absolute bottom-1/4 -right-4 glass-panel px-4 py-2 rounded-full text-sm font-bold shadow-lg shadow-black/50 z-10 flex items-center gap-2 opacity-50">
+                  <Zap className="w-4 h-4 text-purple-400" /> Creator
+                </div>
+                <div className="absolute bottom-1/4 -left-4 glass-panel px-4 py-2 rounded-full text-sm font-bold shadow-lg shadow-black/50 z-10 flex items-center gap-2 opacity-50">
+                  <Wrench className="w-4 h-4 text-emerald-400" /> Business
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer / CTA */}
+      <footer className="bg-black py-20 border-t border-white/5 text-center px-6">
+        <h2 className="text-3xl md:text-5xl font-bold mb-6">Build your dream home.<br/>We'll handle the rest.</h2>
+        <p className="text-slate-500 mb-10 max-w-xl mx-auto">
+          Join the waitlist to get early access to T&A Homes and experience the future of AI real estate advisory.
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4 max-w-md mx-auto">
+          <input type="email" placeholder="Enter your email" className="bg-slate-900 border border-slate-700 px-6 py-4 rounded-full text-white focus:outline-none focus:border-blue-500 flex-1" />
+          <button className="bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-slate-200 transition-colors whitespace-nowrap">
+            Join Waitlist
+          </button>
+        </div>
+        <div className="mt-24 text-slate-700 text-sm">
+          &copy; 2026 T&A Technologies. All rights reserved. The operating system for life.
+        </div>
+      </footer>
+    </div>
+  );
+}
